@@ -157,3 +157,8 @@ UI-автотесты для страниц practice-automation.com на Python 
 ## Результаты
 
 50 passed in 243.13s
+
+## Allure-отчёт онлайн
+
+Интерактивный отчёт со всеми 50 тестами:
+https://tumashenkinyaroslav.github.io/VolgaIT_Semi-final_Test-automation/allure-report/
