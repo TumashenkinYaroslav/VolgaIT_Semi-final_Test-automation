@@ -11,13 +11,14 @@ class ModalsPage(BasePage):
     FORM_MODAL_BTN = (By.ID, "formModal")
 
     OVERLAY = (By.CSS_SELECTOR, ".pum-overlay")
+    CONTAINER = (By.CSS_SELECTOR, ".pum-container")
     MODAL_CONTENT = (By.CSS_SELECTOR, ".pum-content")
     CLOSE_BTN = (By.CSS_SELECTOR, ".pum-close")
 
-    FORM_NAME = (By.CSS_SELECTOR, "input[name='g1051-name']")
-    FORM_EMAIL = (By.CSS_SELECTOR, "input[name='g1051-email']")
-    FORM_MESSAGE = (By.CSS_SELECTOR, "textarea[name='g1051-message']")
-    FORM_SUBMIT = (By.CSS_SELECTOR, "button[type='submit'].pushbutton-wide")
+    # Эти селекторы временные — заменим после диагностики
+    FORM_NAME = (By.CSS_SELECTOR, ".pum-overlay:not([style*='display: none']) input[type='text'], .pum-overlay:not([style*='display: none']) input[type='email']")
+    FORM_EMAIL = (By.CSS_SELECTOR, ".pum-overlay:not([style*='display: none']) input[type='email']")
+    FORM_SUBMIT = (By.CSS_SELECTOR, ".pum-overlay:not([style*='display: none']) button, .pum-overlay:not([style*='display: none']) input[type='submit']")
 
     def open_page(self):
         return self.open(self.PATH)
@@ -48,30 +49,13 @@ class ModalsPage(BasePage):
         except TimeoutException:
             return False
 
-    def get_modal_text(self, timeout: int = 5) -> str:
-        """Ждём непустой текст в видимом overlay. Fallback — весь текст overlay."""
-        try:
-            WebDriverWait(self.driver, timeout).until(
-                lambda d: any(
-                    o.is_displayed() and o.text.strip()
-                    for o in d.find_elements(*self.OVERLAY)
-                )
-            )
-        except TimeoutException:
-            pass
-
+    def get_modal_text(self) -> str:
         for o in self.driver.find_elements(*self.OVERLAY):
             if o.is_displayed():
-                # Сначала пробуем .pum-content
                 try:
-                    content_el = o.find_element(By.CSS_SELECTOR, ".pum-content")
-                    if content_el.text.strip():
-                        return content_el.text
+                    return o.find_element(By.CSS_SELECTOR, ".pum-content").text
                 except Exception:
-                    pass
-                # Fallback — весь текст overlay
-                if o.text.strip():
-                    return o.text
+                    return ""
         return ""
 
     def click_close(self):
@@ -80,16 +64,13 @@ class ModalsPage(BasePage):
                 btn = o.find_element(By.CSS_SELECTOR, ".pum-close")
                 self.driver.execute_script("arguments[0].click();", btn)
                 return self
-        raise AssertionError("Не нашли видимую модалку для закрытия")
+        raise AssertionError("Не нашли видимую модалку")
 
     def fill_name(self, value: str):
         return self.type(self.FORM_NAME, value)
 
     def fill_email(self, value: str):
         return self.type(self.FORM_EMAIL, value)
-
-    def fill_message(self, value: str):
-        return self.type(self.FORM_MESSAGE, value)
 
     def submit_form(self):
         return self.click(self.FORM_SUBMIT)

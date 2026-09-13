@@ -1,12 +1,18 @@
 import os
 import time
+import shutil
 import pytest
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.chrome.service import Service as ChromeService
 
 
 @pytest.fixture(scope="function")
 def browser():
+    driver_path = shutil.which("chromedriver")
+    if driver_path is None:
+        raise RuntimeError("chromedriver не найден в PATH")
+
     options = ChromeOptions()
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
@@ -14,8 +20,10 @@ def browser():
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920,1080")
     options.add_argument("--disable-notifications")
+    options.binary_location = "/usr/bin/google-chrome"
 
-    driver = webdriver.Chrome(options=options)
+    service = ChromeService(executable_path=driver_path)
+    driver = webdriver.Chrome(service=service, options=options)
     driver.implicitly_wait(5)
     yield driver
     driver.quit()
